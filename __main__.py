@@ -53,7 +53,7 @@ for case in cases_dir.glob("*.in"):
     case = case.name.split(".")[0]
     try:
         res = sp.run(
-            ["java", "-cp", str(bin), "Main"],
+            ["java", "-cp", str(bin), "-Xmx16m", "Main"],
             input=(cases_dir / f"{case}.in").read_text(),
             capture_output=True,
             text=True
@@ -65,6 +65,7 @@ for case in cases_dir.glob("*.in"):
 
         # Save output
         (out / f"{case}.out").write_text(res.stdout)
+        print(res.stderr)
 
         # Compare output
         if (res.stdout != (cases_dir / f"{case}.out").read_text()):
