@@ -4,13 +4,13 @@ from sys import exit
 import shutil
 import subprocess as sp
 
-PASS = "\x1B[32mPASS\x1B[0m"
-FAIL = "\x1B[31mFAIL\x1B[0m"
-EXCP = "\x1B[35mEXCP\x1B[0m"
+PASS = "\x1b[32mPASS\x1b[0m"
+FAIL = "\x1b[31mFAIL\x1b[0m"
+EXCP = "\x1b[35mEXCP\x1b[0m"
 
 parser = argparse.ArgumentParser(
-        prog="Algos Test Runner",
-        description="Executes algos tests")
+    prog="Algos Test Runner", description="Executes algos tests"
+)
 
 parser.add_argument("problem", help="The two letter problem code")
 
@@ -40,7 +40,9 @@ out.mkdir()
 
 print("Compiling")
 try:
-    res = sp.run(["javac", "-d", str(bin)] + [str(f) for f in problem_dir.glob("*.java")])
+    res = sp.run(
+        ["javac", "-d", str(bin)] + [str(f) for f in problem_dir.glob("*.java")]
+    )
     if res.returncode != 0:
         print("Java exception during compilation")
         exit(1)
@@ -56,24 +58,23 @@ for case in cases_dir.glob("*.in"):
             ["java", "-cp", str(bin), "-Xmx16m", "Main"],
             input=(cases_dir / f"{case}.in").read_text(),
             capture_output=True,
-            text=True
+            text=True,
         )
+
+        # Save output
+        (out / f"{case}.out").write_text(res.stdout)
+        (out / f"{case}.err").write_text(res.stderr)
+        print(res.stderr)
 
         if res.returncode != 0:
             print(EXCP, case, "during java execution")
             continue
 
-        # Save output
-        (out / f"{case}.out").write_text(res.stdout)
-        print(res.stderr)
-
         # Compare output
-        if (res.stdout != (cases_dir / f"{case}.out").read_text()):
+        if res.stdout != (cases_dir / f"{case}.out").read_text():
             print(FAIL, case)
         else:
             print(PASS, case)
 
     except Exception as e:
         print(EXCP, case, "in python process")
-
-
