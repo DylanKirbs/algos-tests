@@ -24,3 +24,16 @@ Where each directory is named after the problem code.
 ```sh
 python3 test <problem_code>
 ```
+
+> Note: The stderr stream is printed out after each test case is run, so it is recommended to print debug statements to stderr.
+
+## Generating test cases
+
+Create your ".in" file in the cases directory and execute
+
+```sh
+python3 test/gen.py <problem_code>
+```
+This will generate a ".out" file with the expected output (from your program's execution).
+
+> Warning: This will overwrite any existing ".out" file.
