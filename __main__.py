@@ -3,6 +3,7 @@ from pathlib import Path
 from sys import exit
 import shutil
 import subprocess as sp
+import time
 
 PASS = "\x1b[32mPASS\x1b[0m"
 FAIL = "\x1b[31mFAIL\x1b[0m"
@@ -54,12 +55,14 @@ print("Executing tests")
 for case in cases_dir.glob("*.in"):
     case = case.name.split(".")[0]
     try:
+        start = time.perf_counter()
         res = sp.run(
             ["java", "-cp", str(bin), "-Xmx16m", "Main"],
             input=(cases_dir / f"{case}.in").read_text(),
             capture_output=True,
             text=True,
         )
+        elapsed_ms = (time.perf_counter() - start) * 1000
 
         # Save output
         (out / f"{case}.out").write_text(res.stdout)
@@ -72,9 +75,10 @@ for case in cases_dir.glob("*.in"):
 
         # Compare output
         if res.stdout != (cases_dir / f"{case}.out").read_text():
-            print(FAIL, case)
+            print(FAIL, end=" ")
         else:
-            print(PASS, case)
+            print(PASS, end=" ")
+        print(case, f"{elapsed_ms:.0f}ms")
 
     except Exception as e:
         print(EXCP, case, "in python process")
