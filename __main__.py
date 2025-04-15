@@ -61,7 +61,9 @@ except Exception as e:
     print("Python exception during compilation", e)
     exit(1)
 
-flags = ["-Xmx16m"]
+flags = []
+if not args.gen:
+    flags += ["-Xmx16m"]
 if args.gc_info:
     flags += ["-XX:+PrintGCDetails"]
 if args.enable_assertions:
