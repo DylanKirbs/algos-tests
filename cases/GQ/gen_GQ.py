@@ -4,7 +4,7 @@ import random
 def case():
 
     # Setup
-    K = random.randint(1, 20_00)
+    K = random.randint(1, 20_000)
     M = random.randint(1, 100_000)
     print(K, M)
 
