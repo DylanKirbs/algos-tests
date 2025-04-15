@@ -32,7 +32,7 @@ python3 test <problem_code>
 Create your ".in" file in the cases directory and execute
 
 ```sh
-python3 test/gen.py <problem_code>
+python3 test gen <problem_code>
 ```
 This will generate a ".out" file with the expected output (from your program's execution).
 
