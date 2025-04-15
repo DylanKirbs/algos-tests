@@ -24,6 +24,7 @@ parser.add_argument("--gc-info", action="store_true", help="Enable GC info")
 parser.add_argument(
     "--enable-assertions", action="store_true", help="Enable assertions"
 )
+parser.add_argument("--no-mem_limit", action="store_true", help="Disable memory limit")
 
 args = parser.parse_args()
 
@@ -62,10 +63,15 @@ except Exception as e:
     exit(1)
 
 flags = []
-if not args.gen:
+# Limit memory to 16MB
+if not (args.gen or args.no_mem_limit):
     flags += ["-Xmx16m"]
+
+# GC Logging
 if args.gc_info:
     flags += ["-XX:+PrintGCDetails"]
+
+# Enforce Assertions
 if args.enable_assertions:
     flags += ["-ea"]
 
