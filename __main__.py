@@ -8,7 +8,8 @@ import time
 PASS = "\x1b[32mPASS\x1b[0m"
 FAIL = "\x1b[31mFAIL\x1b[0m"
 EXCP = "\x1b[35mEXCP\x1b[0m"
-GENR = "\x1b[33mGENR\x1b[0m"
+CHNG = "\x1b[33mGENR\x1b[0m"
+SAME = "\x1b[33mSAME\x1b[0m"
 
 parser = argparse.ArgumentParser(
     prog="Algos Test Runner", description="Executes algos tests"
@@ -87,12 +88,19 @@ for case in sorted(cases_dir.glob("*.in")):
             print(EXCP, case, "during java execution")
             continue
 
+        diff = True
+        if res.stdout and (cases_dir / f"{case}.out").exists():
+            diff = res.stdout != (cases_dir / f"{case}.out").read_text()
+
         # If generation mode save output to cases dir else compare with expected output
         if args.gen and case != "spec":
             (cases_dir / f"{case}.out").write_text(res.stdout)
-            print(GENR, end=" ")
+            if diff:
+                print(CHNG, end=" ")
+            else:
+                print(SAME, end=" ")
         else:
-            if res.stdout != (cases_dir / f"{case}.out").read_text():
+            if diff:
                 print(FAIL, end=" ")
             else:
                 print(PASS, end=" ")
