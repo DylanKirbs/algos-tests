@@ -24,7 +24,7 @@ parser.add_argument("--gc-info", action="store_true", help="Enable GC info")
 parser.add_argument(
     "--enable-assertions", action="store_true", help="Enable assertions"
 )
-parser.add_argument("--no-mem_limit", action="store_true", help="Disable memory limit")
+parser.add_argument("--no-mem-limit", action="store_true", help="Disable memory limit")
 
 args = parser.parse_args()
 
