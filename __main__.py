@@ -57,7 +57,7 @@ for case in cases_dir.glob("*.in"):
     try:
         start = time.perf_counter()
         res = sp.run(
-            ["java", "-cp", str(bin), "-Xmx16m", "Main"],
+            ["java", "-cp", str(bin), "-Xmx16m", "-ea", "Main"],
             input=(cases_dir / f"{case}.in").read_text(),
             capture_output=True,
             text=True,
