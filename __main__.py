@@ -10,16 +10,25 @@ FAIL = "\x1b[31mFAIL\x1b[0m"
 EXCP = "\x1b[35mEXCP\x1b[0m"
 CHNG = "\x1b[33mGENR\x1b[0m"
 SAME = "\x1b[33mSAME\x1b[0m"
+COMP = "\x1b[34mCOMP\x1b[0m"
+EXEC = "\x1b[36mEXEC\x1b[0m"
 
 parser = argparse.ArgumentParser(
     prog="Algos Test Runner", description="Executes algos tests"
 )
 
-# python3 __main__.py [options] [gen] <A>
-parser.add_argument("gen", nargs="?", help="Enables generation of test cases")
+# python3 __main__.py [options] <A> [contains...]
 parser.add_argument("problem", help="The two letter problem code")
+parser.add_argument(
+    "contains",
+    nargs="*",
+    help="Any test that contains any of the given strings will be executed",
+)
 
 # Options
+parser.add_argument(
+    "--gen", action="store_true", help="Enables generation of test cases"
+)
 parser.add_argument("--gc-info", action="store_true", help="Enable GC info")
 parser.add_argument(
     "--enable-assertions", action="store_true", help="Enable assertions"
@@ -50,7 +59,7 @@ shutil.rmtree(out, ignore_errors=True)
 bin.mkdir()
 out.mkdir()
 
-print("Compiling")
+print(COMP, "Java program")
 try:
     res = sp.run(
         ["javac", "-d", str(bin)] + [str(f) for f in problem_dir.glob("*.java")]
@@ -75,8 +84,18 @@ if args.gc_info:
 if args.enable_assertions:
     flags += ["-ea"]
 
-print("Executing tests with flags:", flags)
-for case in sorted(cases_dir.glob("*.in")):
+cases = sorted(cases_dir.glob("*.in"))
+cases = filter(
+    lambda x: any(s in x.name for s in args.contains) if args.contains else True,
+    cases,
+)
+if not cases:
+    print("No cases found for", args.problem, "with the given filters.")
+    exit(1)
+
+
+print(EXEC, "Tests with flags:", flags)
+for case in cases:
     case = case.name.split(".")[0]
     try:
         start = time.perf_counter()
