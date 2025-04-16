@@ -8,12 +8,23 @@ import time
 PASS = "\x1b[32mPASS\x1b[0m"
 FAIL = "\x1b[31mFAIL\x1b[0m"
 EXCP = "\x1b[35mEXCP\x1b[0m"
+CHNG = "\x1b[33mGENR\x1b[0m"
+SAME = "\x1b[33mSAME\x1b[0m"
 
 parser = argparse.ArgumentParser(
     prog="Algos Test Runner", description="Executes algos tests"
 )
 
+# python3 __main__.py [options] [gen] <A>
+parser.add_argument("gen", nargs="?", help="Enables generation of test cases")
 parser.add_argument("problem", help="The two letter problem code")
+
+# Options
+parser.add_argument("--gc-info", action="store_true", help="Enable GC info")
+parser.add_argument(
+    "--enable-assertions", action="store_true", help="Enable assertions"
+)
+parser.add_argument("--no-mem-limit", action="store_true", help="Disable memory limit")
 
 args = parser.parse_args()
 
@@ -51,34 +62,57 @@ except Exception as e:
     print("Python exception during compilation", e)
     exit(1)
 
-print("Executing tests")
-for case in cases_dir.glob("*.in"):
+flags = []
+# Limit memory to 16MB
+if not (args.gen or args.no_mem_limit):
+    flags += ["-Xmx16m"]
+
+# GC Logging
+if args.gc_info:
+    flags += ["-XX:+PrintGCDetails"]
+
+# Enforce Assertions
+if args.enable_assertions:
+    flags += ["-ea"]
+
+print("Executing tests with flags:", flags)
+for case in sorted(cases_dir.glob("*.in")):
     case = case.name.split(".")[0]
     try:
         start = time.perf_counter()
+        cmd = ["java", "-cp", str(bin)] + flags + ["Main"]
         res = sp.run(
-            ["java", "-cp", str(bin), "-Xmx16m", "Main"],
+            cmd,
             input=(cases_dir / f"{case}.in").read_text(),
-            capture_output=True,
+            stdout=sp.PIPE,
             text=True,
         )
         elapsed_ms = (time.perf_counter() - start) * 1000
 
         # Save output
         (out / f"{case}.out").write_text(res.stdout)
-        (out / f"{case}.err").write_text(res.stderr)
-        print(res.stderr)
 
         if res.returncode != 0:
             print(EXCP, case, "during java execution")
             continue
 
-        # Compare output
-        if res.stdout != (cases_dir / f"{case}.out").read_text():
-            print(FAIL, end=" ")
+        diff = True
+        if res.stdout and (cases_dir / f"{case}.out").exists():
+            diff = res.stdout != (cases_dir / f"{case}.out").read_text()
+
+        # If generation mode save output to cases dir else compare with expected output
+        if args.gen and case != "spec":
+            (cases_dir / f"{case}.out").write_text(res.stdout)
+            if diff:
+                print(CHNG, end=" ")
+            else:
+                print(SAME, end=" ")
         else:
-            print(PASS, end=" ")
+            if diff:
+                print(FAIL, end=" ")
+            else:
+                print(PASS, end=" ")
         print(case, f"{elapsed_ms:.0f}ms")
 
     except Exception as e:
-        print(EXCP, case, "in python process")
+        print(EXCP, case, "in python process", e)
