@@ -6,7 +6,7 @@ def case():
 
     # Setup
     K = random.randint(1, 20_000)
-    M = random.randint(1, 100_000)
+    M = random.randint(0, 100_000)
     print(K, M)
 
     # Vert weights
@@ -31,13 +31,13 @@ def case():
         op = random.randint(0, 2)
         if op == 0:
             # Delete edge
-            X = random.randint(1, K)
+            X = random.randint(1, M)
             print(0, X)
         elif op == 1:
             # Change weight
             X = random.randint(1, K)
-            Y = random.randint(1, K)
-            print(1, D, E)
+            Y = random.randint(-10_000, 10_000)
+            print(1, X, Y)
         else:
             # Query
             X = random.randint(1, K)
