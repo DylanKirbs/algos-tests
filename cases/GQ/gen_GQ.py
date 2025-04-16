@@ -1,4 +1,5 @@
 import random
+from itertools import combinations
 
 
 def case():
@@ -14,10 +15,16 @@ def case():
         print(W)
 
     # Edges
+    edges = set()
     for _ in range(M):
-        D = random.randint(1, K - 1)
-        E = random.randint(D + 1, K)
+        # unique edges
+        D = random.randint(1, K)
+        E = random.randint(1, K)
+        while D == E or (D, E) in edges or (E, D) in edges:
+            D = random.randint(1, K)
+            E = random.randint(1, K)
         print(D, E)
+        edges.add((D, E))
 
     # Operations
     for _ in range(random.randint(1, 200)):
