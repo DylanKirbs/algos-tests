@@ -1,10 +1,11 @@
 import argparse
-from pathlib import Path
-from sys import exit
 import shutil
 import subprocess as sp
 import time
+from pathlib import Path
+from sys import exit
 
+# Output labels
 PASS = "\x1b[32mPASS\x1b[0m"
 FAIL = "\x1b[31mFAIL\x1b[0m"
 EXCP = "\x1b[35mEXCP\x1b[0m"
@@ -13,22 +14,17 @@ SAME = "\x1b[33mSAME\x1b[0m"
 COMP = "\x1b[34mCOMP\x1b[0m"
 EXEC = "\x1b[36mEXEC\x1b[0m"
 
+# Argument parser
 parser = argparse.ArgumentParser(
     prog="Algos Test Runner", description="Executes algos tests"
 )
-
-# python3 __main__.py [options] <A> [contains...]
 parser.add_argument("problem", help="The two letter problem code")
 parser.add_argument(
     "contains",
     nargs="*",
-    help="Any test that contains any of the given strings will be executed",
+    help="Only tests containing any of these substrings in their name will be run",
 )
-
-# Options
-parser.add_argument(
-    "--gen", action="store_true", help="Enables generation of test cases"
-)
+parser.add_argument("--gen", action="store_true", help="Generate .out files")
 parser.add_argument("--gc-info", action="store_true", help="Enable GC info")
 parser.add_argument(
     "--enable-assertions", action="store_true", help="Enable assertions"
@@ -37,101 +33,103 @@ parser.add_argument("--no-mem-limit", action="store_true", help="Disable memory 
 
 args = parser.parse_args()
 
+# Paths
 problem_dir = Path(args.problem).resolve()
 main = problem_dir / "Main.java"
 bin = problem_dir / "bin"
 out = problem_dir / "out"
-
-
-if not main.exists():
-    print("Could not find problem directory or Main.java")
-    exit(1)
-
 test_dir = Path("test").resolve()
 cases_dir = test_dir / "cases" / args.problem
 
+# Validate input
+if not main.exists():
+    print("Could not find problem directory or Main.java")
+    exit(1)
 if not cases_dir.exists():
     print("No cases for", args.problem, "found.")
     exit(1)
 
+# Clean and prepare bin and output directories
 shutil.rmtree(bin, ignore_errors=True)
 shutil.rmtree(out, ignore_errors=True)
 bin.mkdir()
 out.mkdir()
 
-print(COMP, "Java program")
+# Compile Java sources
+print(COMP, "Compiling Java")
 try:
-    res = sp.run(
-        ["javac", "-d", str(bin)] + [str(f) for f in problem_dir.glob("*.java")]
+    sp.run(
+        ["javac", "-d", str(bin)] + [str(f) for f in problem_dir.glob("*.java")],
+        check=True,
     )
-    if res.returncode != 0:
-        print("Java exception during compilation")
-        exit(1)
-except Exception as e:
-    print("Python exception during compilation", e)
+except sp.CalledProcessError:
+    print("Java compilation failed.")
     exit(1)
 
+# Java execution flags
 flags = []
-# Limit memory to 16MB
-if not (args.gen or args.no_mem_limit):
+if not args.gen and not args.no_mem_limit:
     flags += ["-Xmx16m"]
-
-# GC Logging
 if args.gc_info:
     flags += ["-XX:+PrintGCDetails"]
-
-# Enforce Assertions
 if args.enable_assertions:
     flags += ["-ea"]
 
-cases = sorted(cases_dir.glob("*.in"))
-cases = filter(
-    lambda x: any(s in x.name for s in args.contains) if args.contains else True,
-    cases,
+# Collect test cases
+cases = list(
+    filter(
+        lambda x: any(s in x.name for s in args.contains) if args.contains else True,
+        sorted(cases_dir.glob("*.in")),
+    )
 )
+
 if not cases:
-    print("No cases found for", args.problem, "with the given filters.")
+    print("No matching cases found.")
     exit(1)
 
+print(EXEC, "Running tests with flags:", flags)
+failed = 0
 
-print(EXEC, "Tests with flags:", flags)
-for case in cases:
-    case = case.name.split(".")[0]
+# Run each test case
+for case_path in cases:
+    case_name = case_path.stem
     try:
+        input_text = case_path.read_text()
         start = time.perf_counter()
-        cmd = ["java", "-cp", str(bin)] + flags + ["Main"]
-        res = sp.run(
-            cmd,
-            input=(cases_dir / f"{case}.in").read_text(),
+
+        result = sp.run(
+            ["java", "-cp", str(bin), *flags, "Main"],
+            input=input_text,
             stdout=sp.PIPE,
             text=True,
         )
         elapsed_ms = (time.perf_counter() - start) * 1000
+        output_text = result.stdout
+        (out / case_name).with_suffix(".out").write_text(output_text)
 
-        # Save output
-        (out / f"{case}.out").write_text(res.stdout)
-
-        if res.returncode != 0:
-            print(EXCP, case, "during java execution")
+        if result.returncode != 0:
+            print(EXCP, case_name, "during java execution")
             continue
 
-        diff = True
-        if res.stdout and (cases_dir / f"{case}.out").exists():
-            diff = res.stdout != (cases_dir / f"{case}.out").read_text()
+        expected_output_file = (cases_dir / case_name).with_suffix(".out")
+        expected_output = (
+            expected_output_file.read_text() if expected_output_file.exists() else ""
+        )
 
-        # If generation mode save output to cases dir else compare with expected output
-        if args.gen and case != "spec":
-            (cases_dir / f"{case}.out").write_text(res.stdout)
-            if diff:
-                print(CHNG, end=" ")
-            else:
-                print(SAME, end=" ")
+        output_differs = output_text != expected_output
+
+        if args.gen and case_name != "spec":
+            (cases_dir / case_name).with_suffix(".out").write_text(output_text)
+            print((CHNG if output_differs else SAME), case_name, f"{elapsed_ms:.0f}ms")
         else:
-            if diff:
-                print(FAIL, end=" ")
+            if output_differs:
+                print(FAIL, case_name, f"{elapsed_ms:.0f}ms")
+                failed += 1
             else:
-                print(PASS, end=" ")
-        print(case, f"{elapsed_ms:.0f}ms")
+                print(PASS, case_name, f"{elapsed_ms:.0f}ms")
 
     except Exception as e:
-        print(EXCP, case, "in python process", e)
+        print(EXCP, case_name, "in python process:", e)
+
+print(f"\nSummary: {len(cases) - failed}/{len(cases)} tests passed.")
+exit(failed)
