@@ -4,6 +4,67 @@ import subprocess as sp
 import time
 from pathlib import Path
 from sys import exit
+import re
+import subprocess as sp
+import time
+
+
+def time_output_chunks(java_cmd, full_input) -> tuple[int, str, str, list[float]]:
+    """
+    The function runs a Java program with the given command and input,
+    captures its output, and measures the time taken for each test case.
+
+    returns:
+        - return code of the Java process
+        - output text from the Java process
+        - error text from the Java process
+        - list of times taken for each test case in milliseconds
+    """
+    proc = sp.Popen(
+        java_cmd, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, text=True, bufsize=1
+    )
+
+    if not (proc and proc.stdin and proc.stdout and proc.stderr):
+        return -1, "", "", []
+
+    # Send full input
+    proc.stdin.write(full_input)
+    proc.stdin.close()
+
+    times = []
+    out_buff = []
+    current_test = 1
+    start_time = time.perf_counter()
+
+    pattern = re.compile(r"(\d+):")
+
+    while True:
+        out_line = proc.stdout.readline()
+        if not out_line:
+            break
+        out_line = out_line.rstrip()
+
+        out_buff.append(out_line)
+
+        match = pattern.match(out_line)
+        if match and int(match.group(1)) == current_test:
+            now = time.perf_counter()
+            if current_test > 1:
+                # skip the line "1:" because it is the start of the first test (not the end)
+                elapsed = (now - start_time) * 1000
+                times.append(round(elapsed, 4))
+            start_time = now
+            current_test += 1
+
+    # Catch final test case time
+    end_time = time.perf_counter()
+    elapsed = (end_time - start_time) * 1000
+    times.append(round(elapsed, 4))
+
+    proc.wait()
+
+    return proc.returncode, "\n".join(out_buff) + "\n", proc.stderr.read(), times
+
 
 # Output labels
 PASS = "\x1b[32mPASS\x1b[0m"
@@ -95,19 +156,14 @@ for case_path in cases:
     case_name = case_path.stem
     try:
         input_text = case_path.read_text()
-        start = time.perf_counter()
-
-        result = sp.run(
+        returncode, output_text, error_text, times = time_output_chunks(
             ["java", "-cp", str(bin), *flags, "Main"],
-            input=input_text,
-            stdout=sp.PIPE,
-            text=True,
+            input_text,
         )
-        elapsed_ms = (time.perf_counter() - start) * 1000
-        output_text = result.stdout
+
         (out / case_name).with_suffix(".out").write_text(output_text)
 
-        if result.returncode != 0:
+        if returncode != 0:
             print(EXCP, case_name, "during java execution")
             continue
 
@@ -120,13 +176,13 @@ for case_path in cases:
 
         if args.gen and case_name != "spec":
             (cases_dir / case_name).with_suffix(".out").write_text(output_text)
-            print((CHNG if output_differs else SAME), case_name, f"{elapsed_ms:.0f}ms")
+            print((CHNG if output_differs else SAME), case_name)
         else:
             if output_differs:
-                print(FAIL, case_name, f"{elapsed_ms:.0f}ms")
+                print(FAIL, case_name, times)
                 failed += 1
             else:
-                print(PASS, case_name, f"{elapsed_ms:.0f}ms")
+                print(PASS, case_name, times)
 
     except Exception as e:
         print(EXCP, case_name, "in python process:", e)
