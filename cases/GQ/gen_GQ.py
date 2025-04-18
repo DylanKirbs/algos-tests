@@ -27,7 +27,7 @@ def case():
         edges.add((D, E))
 
     # Operations
-    for _ in range(random.randint(2000, 2000)):
+    for _ in range(random.randint(1, 2000)):
         op = random.randint(0, 15)
         # 0   Delete
         # 1-5 Weight
