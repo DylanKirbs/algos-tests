@@ -91,6 +91,13 @@ print(EXEC, "Running tests with flags:", flags)
 failed = 0
 
 # Run each test case
+# case fmt str with each cell to 20 chars
+case_out_fmt_str = "{status} | {name:<20} | {time:<10} | {avg_time:<10}"
+print(
+    case_out_fmt_str.format(
+        status="STAT", name="Test Name", time="Time (ms)", avg_time="Avg Time (ms)"
+    )
+)
 for case_path in cases:
     case_name = case_path.stem
     try:
@@ -110,7 +117,12 @@ for case_path in cases:
         (out / case_name).with_suffix(".out").write_text(output_text)
 
         if result.returncode != 0:
-            print(EXCP, case_name, "during java execution")
+            print(
+                case_out_fmt_str.format(
+                    status=EXCP, name=case_name, time="N/A", avg_time="N/A"
+                )
+            )
+            failed += 1
             continue
 
         expected_output_file = (cases_dir / case_name).with_suffix(".out")
@@ -122,24 +134,33 @@ for case_path in cases:
 
         if args.gen and case_name != "spec":
             (cases_dir / case_name).with_suffix(".out").write_text(output_text)
-            print((CHNG if output_differs else SAME), case_name, f"{elapsed_ms:.0f}ms")
+            print(
+                case_out_fmt_str.format(
+                    status=CHNG if output_differs else SAME,
+                    name=case_name,
+                    time=f"{elapsed_ms:.0f}ms",
+                    avg_time=f"{elapsed_ms/num_cases:.0f}ms",
+                )
+            )
         else:
             if output_differs:
                 print(
-                    FAIL,
-                    case_name,
-                    f"Total time: {elapsed_ms:.0f}ms",
-                    f"Avg time per case: {elapsed_ms/num_cases:.0f}ms",
-                    sep=" | ",
+                    case_out_fmt_str.format(
+                        status=FAIL,
+                        name=case_name,
+                        time=f"{elapsed_ms:.0f}ms",
+                        avg_time=f"{elapsed_ms/num_cases:.0f}ms",
+                    )
                 )
                 failed += 1
             else:
                 print(
-                    PASS,
-                    case_name,
-                    f"Total time: {elapsed_ms:.0f}ms",
-                    f"Avg time per case: {elapsed_ms/num_cases:.0f}ms",
-                    sep=" | ",
+                    case_out_fmt_str.format(
+                        status=PASS,
+                        name=case_name,
+                        time=f"{elapsed_ms:.0f}ms",
+                        avg_time=f"{elapsed_ms/num_cases:.0f}ms",
+                    )
                 )
 
     except Exception as e:
