@@ -94,7 +94,9 @@ failed = 0
 for case_path in cases:
     case_name = case_path.stem
     try:
-        input_text = case_path.read_text()
+        input_text: str = case_path.read_text()
+        # read the first number of the input as the number of cases
+        num_cases = int(input_text.split(maxsplit=1)[0])
         start = time.perf_counter()
 
         result = sp.run(
@@ -123,10 +125,22 @@ for case_path in cases:
             print((CHNG if output_differs else SAME), case_name, f"{elapsed_ms:.0f}ms")
         else:
             if output_differs:
-                print(FAIL, case_name, f"{elapsed_ms:.0f}ms")
+                print(
+                    FAIL,
+                    case_name,
+                    f"Total time: {elapsed_ms:.0f}ms",
+                    f"Avg time per case: {elapsed_ms/num_cases:.0f}ms",
+                    sep=" | ",
+                )
                 failed += 1
             else:
-                print(PASS, case_name, f"{elapsed_ms:.0f}ms")
+                print(
+                    PASS,
+                    case_name,
+                    f"Total time: {elapsed_ms:.0f}ms",
+                    f"Avg time per case: {elapsed_ms/num_cases:.0f}ms",
+                    sep=" | ",
+                )
 
     except Exception as e:
         print(EXCP, case_name, "in python process:", e)
