@@ -27,13 +27,16 @@ def case():
         edges.add((D, E))
 
     # Operations
-    for _ in range(random.randint(1, 200)):
-        op = random.randint(0, 2)
+    for _ in range(random.randint(2000, 2000)):
+        op = random.randint(0, 15)
+        # 0   Delete
+        # 1-5 Weight
+        # 6-15 Query
         if op == 0:
             # Delete edge
             X = random.randint(1, M)
             print(0, X)
-        elif op == 1:
+        elif op <= 5:
             # Change weight
             X = random.randint(1, K)
             Y = random.randint(-10_000, 10_000)
