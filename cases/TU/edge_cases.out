@@ -49,8 +49,8 @@ B=(h A)
 X=(h A)
 .
 17:
-A=(f (f c))
-B=(f c)
+A=(f (f C))
+B=(f C)
 .
 18:
 A=(f B)
@@ -61,7 +61,10 @@ B=A
 X=(f A)
 .
 20:
-none
+A=X
+B=X
+Y=X
+.
 21:
 none
 22:
