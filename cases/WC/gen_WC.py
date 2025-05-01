@@ -35,7 +35,8 @@ def generate_cases(num_cases, words_per_case):
             print(word)
 
 if __name__ == "__main__":
-    # default: 1 case with 20 words
-    num_cases = int(sys.argv[1]) if len(sys.argv) > 1 else 100
-    words_per_case = int(sys.argv[2]) if len(sys.argv) > 2 else 20
+    max_cases = 100
+    max_words = 20
+    num_cases = random.randint(1, max_cases)
+    words_per_case = random.randint(1, max_words)
     generate_cases(num_cases, words_per_case)
