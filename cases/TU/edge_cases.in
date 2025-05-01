@@ -1,4 +1,4 @@
-24
+25
 X (f X)
 (g (X Y)) (g (a b))
 (h a (k b c)) (h X Y)
@@ -23,3 +23,4 @@ X (f X)
 (f A A)	(f a b)
 (k (g a)) (k (g a b))
 (p (q a b))	(p (q a))
+(f Q) (f Z)
