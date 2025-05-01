@@ -2,10 +2,8 @@
 
 import random
 import string
-import sys
 
 def generate_test_case(num_words, min_len=3, max_len=15):
-    assert 1 <= num_words <= 20
     alphabet = string.ascii_lowercase
     long_string = ''.join(random.choices(alphabet, k=200 + num_words * max_len))
 
@@ -26,17 +24,15 @@ def generate_test_case(num_words, min_len=3, max_len=15):
 
     return list(words)
 
-def generate_cases(num_cases, words_per_case):
+def generate_cases():
+    num_cases = random.randint(1, 100)
     print(num_cases)
     for _ in range(num_cases):
+        words_per_case = random.randint(1, 20)
         words = generate_test_case(words_per_case)
         print(len(words))
         for word in words:
             print(word)
 
 if __name__ == "__main__":
-    max_cases = 100
-    max_words = 20
-    num_cases = random.randint(1, max_cases)
-    words_per_case = random.randint(1, max_words)
-    generate_cases(num_cases, words_per_case)
+    generate_cases()
