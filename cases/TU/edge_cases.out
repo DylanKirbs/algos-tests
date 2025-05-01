@@ -1,0 +1,72 @@
+1:
+none
+2:
+X=a
+Y=b
+.
+3:
+X=a
+Y=(k b c)
+.
+4:
+Y=(g X)
+.
+5:
+none
+6:
+X=(q R)
+Y=(q S)
+.
+7:
+.
+8:
+X=a
+Y=(r b c)
+.
+9:
+X=(q (r S))
+.
+10:
+none
+11:
+X=(g Z)
+Y=a
+.
+12:
+A=(g B)
+.
+13:
+none
+14:
+none
+15:
+P=(r (z))
+Q=(z)
+Z=(g (z))
+.
+16:
+B=(h A)
+X=(h A)
+.
+17:
+A=(f (f c))
+B=(f c)
+.
+18:
+A=(f B)
+C=(g (f B))
+.
+19:
+B=A
+X=(f A)
+.
+20:
+none
+21:
+none
+22:
+none
+23:
+none
+24:
+none
