@@ -1,4 +1,4 @@
-26
+28
 X (f X)
 (g (X Y)) (g (a b))
 (h a (k b c)) (h X Y)
@@ -25,3 +25,5 @@ X (f X)
 (p (q a b))	(p (q a))
 (f Q) (f Z)
 (X Y Z (a A) (b B) (c C)) (A B C (a X) (b Y) (c Z))
+(k B (h A)) (k X X)
+(k A B C (h A) (i D) (b E) (d F)) (k X Y Z Z Y X R)
