@@ -91,3 +91,12 @@ Z=()
 B=(h A)
 X=(h A)
 .
+28:
+A=(b E)
+B=(i D)
+C=(h (b E))
+R=(d F)
+X=(b E)
+Y=(i D)
+Z=(h (b E))
+.
