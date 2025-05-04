@@ -49,12 +49,13 @@ test_dir = Path("test").resolve()
 cases_dir = test_dir / "cases" / args.problem
 
 # Validate input
-if not main.exists():
-    print("Could not find problem directory or Main.java")
-    exit(1)
 if not cases_dir.exists():
     print("No cases for", args.problem, "found.")
     exit(1)
+if not main.exists():
+    print("Could not find problem directory or Main.java for", args.problem)
+    exit(1)
+
 
 # Clean and prepare bin and output directories
 shutil.rmtree(bin, ignore_errors=True)
