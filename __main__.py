@@ -6,13 +6,20 @@ from pathlib import Path
 from sys import exit
 
 # Output labels
-PASS = "\x1b[32mPASS\x1b[0m"
-FAIL = "\x1b[31mFAIL\x1b[0m"
-EXCP = "\x1b[35mEXCP\x1b[0m"
-CHNG = "\x1b[33mGENR\x1b[0m"
-SAME = "\x1b[33mSAME\x1b[0m"
-COMP = "\x1b[34mCOMP\x1b[0m"
-EXEC = "\x1b[36mEXEC\x1b[0m"
+FAIL_LABEL = "\x1b[31mFAIL\x1b[0m"
+
+PASS_LABEL = "\x1b[32mPASS\x1b[0m"
+
+CHANGE_LABEL = "\x1b[33mGENR\x1b[0m"
+SAME_LABEL = "\x1b[33mSAME\x1b[0m"
+
+COMPILE_LABEL = "\x1b[34mCOMP\x1b[0m"
+
+EXCEPTION_LABEL = "\x1b[35mEXCP\x1b[0m"
+TIMEOUT_LABEL = "\x1b[35mTIME\x1b[0m"
+
+EXECUTE_LABEL = "\x1b[36mEXEC\x1b[0m"
+STATUS_LABEL = "\x1b[36mSTAT\x1b[0m"
 
 # Argument parser
 parser = argparse.ArgumentParser(
@@ -56,7 +63,7 @@ bin.mkdir()
 out.mkdir()
 
 # Compile Java sources
-print(COMP, "Compiling Java")
+print(COMPILE_LABEL, "Compiling Java")
 try:
     sp.run(
         ["javac", "-d", str(bin)] + [str(f) for f in problem_dir.glob("*.java")],
@@ -83,11 +90,20 @@ cases = list(
     )
 )
 
+timeout_file = cases_dir / ".timeout"
+timeout = int(timeout_file.read_text().strip()) if timeout_file.exists() else None
+
 if not cases:
     print("No matching cases found.")
     exit(1)
 
-print(EXEC, "Running tests with flags:", flags)
+print(
+    EXECUTE_LABEL,
+    "Running tests with flags:",
+    flags,
+    "and avg case timeout:",
+    f"{timeout}ms",
+)
 failed = 0
 
 # Run each test case
@@ -95,7 +111,10 @@ failed = 0
 case_out_fmt_str = "{status} | {name:<20} | {time:<10} | {avg_time:<10}"
 print(
     case_out_fmt_str.format(
-        status="STAT", name="Test Name", time="Time (ms)", avg_time="Avg Time (ms)"
+        status=STATUS_LABEL,
+        name="Test Name",
+        time="Time (ms)",
+        avg_time="Avg Time (ms)",
     )
 )
 for case_path in cases:
@@ -119,7 +138,7 @@ for case_path in cases:
         if result.returncode != 0:
             print(
                 case_out_fmt_str.format(
-                    status=EXCP, name=case_name, time="N/A", avg_time="N/A"
+                    status=EXCEPTION_LABEL, name=case_name, time="N/A", avg_time="N/A"
                 )
             )
             failed += 1
@@ -131,40 +150,38 @@ for case_path in cases:
         )
 
         output_differs = output_text != expected_output
+        avg_time = elapsed_ms / num_cases
 
         if args.gen and case_name != "spec":
             (cases_dir / case_name).with_suffix(".out").write_text(output_text)
             print(
                 case_out_fmt_str.format(
-                    status=CHNG if output_differs else SAME,
+                    status=CHANGE_LABEL if output_differs else SAME_LABEL,
                     name=case_name,
                     time=f"{elapsed_ms:.0f}ms",
-                    avg_time=f"{elapsed_ms/num_cases:.0f}ms",
+                    avg_time=f"{avg_time:.0f}ms",
                 )
             )
         else:
+            status = PASS_LABEL
             if output_differs:
-                print(
-                    case_out_fmt_str.format(
-                        status=FAIL,
-                        name=case_name,
-                        time=f"{elapsed_ms:.0f}ms",
-                        avg_time=f"{elapsed_ms/num_cases:.0f}ms",
-                    )
-                )
+                status = FAIL_LABEL
                 failed += 1
-            else:
-                print(
-                    case_out_fmt_str.format(
-                        status=PASS,
-                        name=case_name,
-                        time=f"{elapsed_ms:.0f}ms",
-                        avg_time=f"{elapsed_ms/num_cases:.0f}ms",
-                    )
+            elif timeout and avg_time > timeout:
+                status = TIMEOUT_LABEL
+                failed += 1
+
+            print(
+                case_out_fmt_str.format(
+                    status=status,
+                    name=case_name,
+                    time=f"{elapsed_ms:.0f}ms",
+                    avg_time=f"{avg_time:.0f}ms",
                 )
+            )
 
     except Exception as e:
-        print(EXCP, case_name, "in python process:", e)
+        print(EXCEPTION_LABEL, case_name, "in python process:", e)
 
 print(f"\nSummary: {len(cases) - failed}/{len(cases)} tests passed.")
 exit(failed)
