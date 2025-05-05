@@ -1,0 +1,20 @@
+4
+3
+ifgo 2
+repeat 1 3
+stop
+1
+skip
+4
+ifgo 2
+ifgo 3
+skip
+stop
+7
+skip
+ifgo 4
+go 5
+ifgo 3
+repeat 2 2
+repeat 1 2
+stop
