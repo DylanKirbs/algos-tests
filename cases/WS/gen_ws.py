@@ -1,7 +1,7 @@
 import random
 from itertools import combinations
 
-DOWN_SCALING_FACTOR = 1
+DOWN_SCALING_FACTOR = 4
 
 
 def case():
