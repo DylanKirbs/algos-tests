@@ -1,4 +1,4 @@
-30
+53
 X (f X)
 (g X Y) (g a b)
 (h a (k b c)) (h X Y)
@@ -29,3 +29,26 @@ X (f X)
 (k A B C (h A) (i D) (b E) (d F)) (k X Y Z Z Y X R)
 B (h B)
 a (a a)
+(g F) (g ())
+(g X Y) (g a (b X))
+(g Q (a)) (g (b) Q)
+X Y
+a b
+(f X) (f a)
+(f X Y) (f a b)
+(f X X) (f a b)
+(f a) (g a)
+(h (f X) Y) (h (f Z) b)
+(h X X) (h a b)
+(f (g X) Y) (f (g a) b)
+(f X (g Y)) (f a (g b))
+() ()
+(f) (f)
+(f X) (f (g Y))
+(f (g X Y)) (f (g a b))
+(f (g a)) (f X)
+(f X X) (f (g Y) Y)
+(f X) X
+X (f X)
+(f a b) (f a)
+(f a) (f a b)
