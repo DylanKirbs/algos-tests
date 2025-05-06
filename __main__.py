@@ -98,6 +98,12 @@ if not cases:
     print("No matching cases found.")
     exit(1)
 
+print("Breakdown of labels:")
+print("", FAIL_LABEL, "- your output is incorrect")
+print("", PASS_LABEL, "- your output is correct and ran in time")
+print("", TIMEOUT_LABEL, "- your output is correct but the average time exceeds the allowed time")
+print("", EXCEPTION_LABEL, "- your program terminiated with an exception")
+
 print(
     EXECUTE_LABEL,
     "Running tests with flags:",
