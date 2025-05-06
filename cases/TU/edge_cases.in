@@ -1,4 +1,4 @@
-53
+55
 X (f X)
 (g X Y) (g a b)
 (h a (k b c)) (h X Y)
@@ -52,3 +52,5 @@ a b
 X (f X)
 (f a b) (f a)
 (f a) (f a b)
+(g F) (g (b))
+(g (a Y)) (X (a Y))
